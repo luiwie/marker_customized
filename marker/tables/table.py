@@ -142,6 +142,8 @@ def format_tables(pages: List[Page], doc: PdfDocument, fname: str, detection_mod
                 continue
 
             markdown = table_md[table_count]
+            markdown = settings.TABLE_START_SEPARATOR + markdown + settings.TABLE_END_SEPARATOR
+
             table_block = Block(
                 bbox=table_box,
                 block_type="Table",

@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 import torch
 import os
 
+DASHES = "-" * 24
 
 class Settings(BaseSettings):
     # General
@@ -89,7 +90,11 @@ class Settings(BaseSettings):
     HEADING_DEFAULT_LEVEL: int = 2
 
     # Output
-    PAGE_SEPARATOR: str = "-" * 48 + "\n\n"
+    PAGE_SEPARATOR: str = DASHES * 2 + "\n\n"
+    TABLE_START_SEPARATOR: str = DASHES + "Table START" + DASHES + "\n"
+    TABLE_END_SEPARATOR: str = "\n" + DASHES + "Table END" + DASHES
+    IMAGE_SEPARATOR: str = "\n\n![{filename}]({filename})\n\n"
+
 
     # Debug
     DEBUG_DATA_FOLDER: str = os.path.join(BASE_DIR, "debug_data")

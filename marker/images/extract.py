@@ -47,7 +47,7 @@ def extract_page_images(page_obj, page):
         block = page.blocks[block_idx]
         image = render_bbox_image(page_obj, page, bbox)
         image_filename = get_image_filename(page, image_idx)
-        image_markdown = f"\n\n![{image_filename}]({image_filename})\n\n"
+        image_markdown = settings.IMAGE_SEPARATOR.format(filename=image_filename)
         image_span = Span(
             bbox=bbox,
             text=image_markdown,
