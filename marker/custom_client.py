@@ -9,16 +9,18 @@ from marker.convert import convert_single_pdf
 from marker.logger import configure_logging
 from marker.models import load_all_models
 from marker.output import save_markdown
-
+from pydantic import BaseModel
 configure_logging()
 
-class MarkerArgs:
-    filename = "/Users/luwi/Documents/Frequently_Used/GraphRAG_Paper.pdf"
-    output = "output/"
-    max_pages = None
-    start_page = None
-    langs = None
-    batch_multiplier = 2
+
+
+class MarkerArgs(BaseModel):
+    filename: str  # "/Users/luwi/Documents/Frequently_Used/GraphRAG_Paper.pdf"
+    output: str = None # "output/"
+    max_pages: int = None
+    start_page: int = None
+    langs: str = None
+    batch_multiplier: int = 2
 
 def parse_pdf(args: MarkerArgs, save: bool = True):
     langs = args.langs.split(",") if args.langs else None
@@ -41,4 +43,4 @@ def parse_pdf(args: MarkerArgs, save: bool = True):
 if __name__ == "__main__":
     args = MarkerArgs()
     os.makedirs(args.output, exist_ok=True)
-    parse_pdf(args)
+    parse_pdf(args, save=True)
