@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Literal
+from typing import Optional
 
 from dotenv import find_dotenv
 from pydantic import computed_field
@@ -9,13 +9,18 @@ import os
 DASHES = "-" * 24
 
 class Settings(BaseSettings):
-    # General
-    TORCH_DEVICE: Optional[str] = None # Note: MPS device does not work for text detection, and will default to CPU
-    IMAGE_DPI: int = 96 # DPI to render images pulled from pdf at
-    EXTRACT_IMAGES: bool = True # Extract images from pdfs and save them
-    PAGINATE_OUTPUT: bool = False # Paginate output markdown
+    # Paths
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    FLATTEN_PDF: bool = True # Pull form field values into the PDF before converting to markdown
+    OUTPUT_DIR: str = os.path.join(BASE_DIR, "conversion_results")
+    FONT_DIR: str = os.path.join(BASE_DIR, "static", "fonts")
+    DEBUG_DATA_FOLDER: str = os.path.join(BASE_DIR, "debug_data")
+
+    # General
+    OUTPUT_ENCODING: str = "utf-8"
+    OUTPUT_IMAGE_FORMAT: str = "JPEG"
+
+    # General models
+    TORCH_DEVICE: Optional[str] = None  # Note: MPS device does not work for text detection, and will default to CPU
 
     @computed_field
     @property
@@ -115,6 +120,9 @@ class Settings(BaseSettings):
             return torch.bfloat16
         else:
             return torch.float32
+
+    # Texify model
+    TEXIFY_MODEL_NAME: str = "vikp/texify"
 
     @computed_field
     @property
