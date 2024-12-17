@@ -1,40 +1,41 @@
-import os
-
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1" # Transformers uses .isin for a simple op, which is not supported on MPS
-
 import time
 
-import click
+import pypdfium2 # Needs to be at the top to avoid warnings
+import os
 
-from marker.config.parser import ConfigParser
-from marker.config.printer import CustomClickPrinter
-from marker.converters.pdf import PdfConverter
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1" # For some reason, transformers decided to use .isin for a simple op, which is not supported on MPS
+
+import argparse
+from marker.convert import convert_single_pdf
 from marker.logger import configure_logging
-from marker.models import create_model_dict
-from marker.output import save_output
+from marker.models import load_all_models
+
+from marker.output import save_markdown
 
 configure_logging()
 
 
-@click.command(cls=CustomClickPrinter, help="Convert a single PDF to markdown.")
-@click.argument("fpath", type=str)
-@ConfigParser.common_options
-def main(fpath: str, **kwargs):
-    models = create_model_dict()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename", help="PDF file to parse")
+    parser.add_argument("output", help="Output base folder path")
+    parser.add_argument("--max_pages", type=int, default=None, help="Maximum number of pages to parse")
+    parser.add_argument("--start_page", type=int, default=None, help="Page to start processing at")
+    parser.add_argument("--langs", type=str, help="Optional languages to use for OCR, comma separated", default=None)
+    parser.add_argument("--batch_multiplier", type=int, default=2, help="How much to increase batch sizes")
+    args = parser.parse_args()
+
+    langs = args.langs.split(",") if args.langs else None
+
+    fname = args.filename
+    model_lst = load_all_models()
     start = time.time()
-    config_parser = ConfigParser(kwargs)
+    full_text, images, out_meta = convert_single_pdf(fname, model_lst, max_pages=args.max_pages, langs=langs, batch_multiplier=args.batch_multiplier, start_page=args.start_page)
 
-    converter = PdfConverter(
-        config=config_parser.generate_config_dict(),
-        artifact_dict=models,
-        processor_list=config_parser.get_processors(),
-        renderer=config_parser.get_renderer()
-    )
-    rendered = converter(fpath)
-    out_folder = config_parser.get_output_folder(fpath)
-    save_output(rendered, out_folder, config_parser.get_base_filename(fpath))
+    fname = os.path.basename(fname)
+    subfolder_path = save_markdown(args.output, fname, full_text, images, out_meta)
 
-    print(f"Saved markdown to {out_folder}")
+    print(f"Saved markdown to the {subfolder_path} folder")
     print(f"Total time: {time.time() - start}")
 
 
